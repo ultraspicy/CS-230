@@ -6,7 +6,7 @@ Python and ML basics
 build a logistic regression classifier to recognize cats 
 
 ### W3A1
-neural network. which will have one hidden layer to classify a complex shape
+neural network with forward prop and backward prop which will have one hidden layer to classify a complex shape
 
 ### W4A1
 week 4 assignment (part 1 of 2)! Previously you trained a 2-layer Neural Network with a single hidden layer. This week, you will build a deep neural network with as many layers as you want!
@@ -24,3 +24,6 @@ apply L2 regularization and dropout to a deep learning model that recommends pos
 
 ### W1A3
 implement gradient checking to check for errors in your implementation of a fraud detection model. 
+
+### W2A1
+Optimization Methods: mini-batch, momentum, adam, learning_rate_decay
