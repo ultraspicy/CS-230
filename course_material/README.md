@@ -1,3 +1,4 @@
+## C1 Neural Networks and Deep Learning
 ### W2A1
 Python and ML basics 
 
@@ -12,3 +13,14 @@ week 4 assignment (part 1 of 2)! Previously you trained a 2-layer Neural Network
 
 ### W4A2
 To build your cat/not-a-cat classifier, you'll use the functions from the previous assignment to build a deep network.
+
+## C2 Improving Deep Neural Networks: Hyperparameter Tuning, Regularization and Optimization
+
+### W1A1
+In this notebook, you'll try out a few different initializations and see how they lead to different results. 
+
+### W1A2
+apply L2 regularization and dropout to a deep learning model that recommends positions to football players. 
+
+### W1A3
+implement gradient checking to check for errors in your implementation of a fraud detection model. 
