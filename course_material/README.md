@@ -27,3 +27,6 @@ implement gradient checking to check for errors in your implementation of a frau
 
 ### W2A1
 Optimization Methods: mini-batch, momentum, adam, learning_rate_decay
+
+### W3A1
+Use Tensorflow to classify hand gesture from 0-9(multi-classification)
