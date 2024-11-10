@@ -4,6 +4,9 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from typing import List, Dict
+import csv
+from collections import Counter
+from datetime import datetime
 
 class TransactionDataset(Dataset):
     """Simple dataset for financial transactions"""
@@ -13,19 +16,61 @@ class TransactionDataset(Dataset):
         self.amounts = torch.tensor(amounts, dtype=torch.float32)
         
         # Extract temporal features from timestamps
-        timestamps = np.array(timestamps)
-        self.day_of_week = torch.tensor(timestamps % 7, dtype=torch.float32)
-        self.day_of_month = torch.tensor(timestamps % 30, dtype=torch.float32)
+        self.day_of_week, self.day_of_month = self.process_dates(timestamps)
         
         # Convert categories to indices
         unique_categories = sorted(set(categories))
         self.category_to_idx = {cat: idx for idx, cat in enumerate(unique_categories)}
+        # print(category_to_idx)  # {'Gas': 0, 'Groceries': 1, 'Restaurant': 2}
         self.labels = torch.tensor([self.category_to_idx[cat] for cat in categories])
+        # print(labels)  # tensor([1, 0, 2])
         
         # Convert descriptions to term frequency vectors
         self.vocab = self._build_vocabulary(descriptions)
         self.description_vectors = self._vectorize_descriptions(descriptions)
+
+    def process_dates(self, dates):
+        """
+        Convert dates to day_of_week and day_of_month features
+        Handles both timestamp (int/float) and date strings (e.g., '2024-11-08')
         
+        Args:
+            dates: List of dates in either timestamp or string format
+            
+        Returns:
+            tuple: (day_of_week tensor, day_of_month tensor)
+        """
+        processed_timestamps = []
+        
+        for date in dates:
+            if isinstance(date, (int, float)):  # If already timestamp
+                timestamp = date
+            else:  # If string date
+                try:
+                    # Try parsing as ISO format (YYYY-MM-DD)
+                    dt = datetime.strptime(date, '%Y-%m-%d')
+                    timestamp = dt.timestamp()
+                except ValueError as e:
+                    print(f"Warning: Could not parse date {date}: {e}")
+                    # Use a default timestamp if parsing fails
+                    timestamp = 0
+            
+            processed_timestamps.append(timestamp)
+        
+        timestamps = np.array(processed_timestamps)
+        
+        # Convert to datetime objects for accurate day extraction
+        dt_objects = [datetime.fromtimestamp(ts) for ts in timestamps]
+        
+        # Extract day of week (0 = Monday, 6 = Sunday)
+        day_of_week = np.array([dt.weekday() for dt in dt_objects])
+        
+        # Extract day of month (1-31)
+        day_of_month = np.array([dt.day for dt in dt_objects])
+        
+        return (torch.tensor(day_of_week, dtype=torch.float32),
+                torch.tensor(day_of_month, dtype=torch.float32))
+   
     def _build_vocabulary(self, descriptions: List[str], max_features: int = 1000):
         """Build a simple vocabulary from descriptions"""
         word_freq = {}
@@ -88,8 +133,8 @@ class TransactionClassifier(nn.Module):
         return self.layers(x)
 
 def train_model(model: nn.Module, train_loader: DataLoader, 
-                val_loader: DataLoader, num_epochs: int = 10, 
-                learning_rate: float = 0.001):
+                val_loader: DataLoader, num_epochs: int = 100, 
+                learning_rate: float = 0.01):
     """Training loop with validation"""
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
@@ -169,7 +214,14 @@ def train_model(model: nn.Module, train_loader: DataLoader,
     return model
 
 # Example usage
-def prepare_example_data():
+def prepare_example_data(mode = 'fake'):
+    if mode == 'fake':
+        return prepare_example_data_fake()
+    elif mode == 'mini':
+        return prepare_example_data_mini()
+    
+
+def prepare_example_data_fake():
     """Prepare sample data for demonstration"""
     descriptions = [
         "WALMART GROCERY",
@@ -181,12 +233,61 @@ def prepare_example_data():
     amounts = [125.60, 14.99, 45.30, 5.75, 1200.00]
     timestamps = [1699123200, 1699209600, 1699296000, 1699382400, 1699468800]
     categories = ["Groceries", "Subscription", "Transportation", "Food", "Housing"]
-    
     return descriptions, amounts, timestamps, categories
+
+def prepare_example_data_mini():
+    """ read csv file exported from copiolt for fast verification"""
+    column_data = process_csv_with_analysis('./../resources/transactions_exported_from_copilot.csv')
+    analyze_column_data(column_data)
+
+    # Convert amount from string to float
+    amounts = [float(amt) for amt in column_data['amount']]
+    return column_data['description'], amounts,  column_data['date'], column_data['category']
+
+
+def process_csv_with_analysis(file_path: str) -> Dict[str, List[str]]:
+    """
+    Read CSV file and create a mapping of column names to their values with additional analysis
+    """
+    column_map: Dict[str, List[str]] = {}
+    
+    with open(file_path, 'r', encoding='utf-8') as file:
+        csv_reader = csv.DictReader(file)
+        
+        # Initialize lists for each column
+        for column in csv_reader.fieldnames or []:
+            column_map[column] = []
+            
+        # Read each row
+        for row in csv_reader:
+            for column, value in row.items():
+                column_map[column].append(value)
+    
+    return column_map
+
+def analyze_column_data(column_map: Dict[str, List[str]]):
+    """Print detailed analysis of each column"""
+    for column, values in column_map.items():
+        print(f"\n=== {column} ===")
+        print(f"Total entries: {len(values)}")
+        
+        # Count non-empty values
+        non_empty = [v for v in values if v.strip()]
+        print(f"Non-empty entries: {len(non_empty)}")
+        
+        # Show unique values and their counts
+        value_counts = Counter(values)
+        print(f"Unique values: {len(value_counts)}")
+        
+        # Show most common values
+        if len(value_counts) > 1:
+            print("\nMost common values:")
+            for value, count in value_counts.most_common(3):
+                print(f"  {value!r}: {count} times")
 
 if __name__ == "__main__":
     # Prepare example data
-    descriptions, amounts, timestamps, categories = prepare_example_data()
+    descriptions, amounts, timestamps, categories = prepare_example_data('mini')
     
     # Create dataset
     dataset = TransactionDataset(descriptions, amounts, timestamps, categories)
@@ -216,3 +317,5 @@ if __name__ == "__main__":
         pickle.dump(dataset.vocab, f)
     with open('categories.pkl', 'wb') as f:
         pickle.dump(dataset.category_to_idx, f)
+    print('==========================================================')
+    print('==============  training complete ========================')
