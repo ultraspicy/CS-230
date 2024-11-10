@@ -1,0 +1,39 @@
+# Deep Learning
+tensorflow>=2.12.0
+torch>=2.0.0
+torchvision>=0.15.0
+keras>=2.12.0
+typing>=3.7.4
+
+# Data Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.13.0
+
+# Jupyter Environment
+jupyter>=1.0.0
+jupyterlab>=3.6.0
+ipywidgets>=8.0.0
+
+# Feature Engineering & Processing
+category_encoders>=2.6.0
+feature_engine>=1.5.0
+imbalanced-learn>=0.10.0
+
+# Image Processing
+Pillow>=9.4.0
+opencv-python>=4.7.0
+
+# NLP
+nltk>=3.8.0
+spacy>=3.5.0
+transformers>=4.27.0
+
+# Kaggle Specific
+kaggle>=1.5.0
+kagglehub >=0.3 
+
+# Utilities
+tqdm>=4.65.0
+joblib>=1.2.0
+python-dotenv>=1.0.0
