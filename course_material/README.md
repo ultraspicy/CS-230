@@ -37,3 +37,6 @@ Use Tensorflow to classify hand gesture from 0-9(multi-classification)
 
 ### W1A1
 Implement convolutional (CONV) and pooling (POOL) layers in numpy, including both forward propagation and (optionally) backward propagation.
+
+### W1A2
+Build ConvNets to create a classifier and identify sign language digits, using TF Keras Sequential and Functional APIs
