@@ -41,7 +41,7 @@ Implement convolutional (CONV) and pooling (POOL) layers in numpy, including bot
 ### W1A2
 Build ConvNets to create a classifier and identify sign language digits, using TF Keras Sequential and Functional APIs
 
-### W2A1
+### W2A1(missing)
 Building a very deep convolutional network, using Residual Networks (ResNets)
 
 ### W2A2
@@ -49,3 +49,12 @@ Using transfer learning on a pre-trained CNN to build an Alpaca/Not Alpaca class
 
 ### W3A1
 Implement object detection on a car dataset using the very powerful YOLO model.
+
+### W3A2(missing)
+Use U-Net, a type of CNN designed for quick, precise image segmentation, to predict a class label for every single pixel in an image 
+
+### W4A1
+Build a face recognition system
+
+### W4A2 (missing)
+Use transfer learning to generate new artistic images
