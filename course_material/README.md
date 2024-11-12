@@ -46,3 +46,6 @@ Building a very deep convolutional network, using Residual Networks (ResNets)
 
 ### W2A2
 Using transfer learning on a pre-trained CNN to build an Alpaca/Not Alpaca classifier
+
+### W3A1
+Implement object detection on a car dataset using the very powerful YOLO model.
