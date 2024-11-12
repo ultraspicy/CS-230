@@ -58,3 +58,14 @@ Build a face recognition system
 
 ### W4A2 (missing)
 Use transfer learning to generate new artistic images
+
+## Sequence Models
+
+### C5-W1A1
+Building a recurrent neural network - step by step
+
+### C5-W1A2
+Generate dinosaur name - Character-Level Language Modeling
+
+### C5-W1A3
+Jazz improvisation with LSTM
