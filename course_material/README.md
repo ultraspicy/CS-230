@@ -40,3 +40,9 @@ Implement convolutional (CONV) and pooling (POOL) layers in numpy, including bot
 
 ### W1A2
 Build ConvNets to create a classifier and identify sign language digits, using TF Keras Sequential and Functional APIs
+
+### W2A1
+Building a very deep convolutional network, using Residual Networks (ResNets)
+
+### W2A2
+Using transfer learning on a pre-trained CNN to build an Alpaca/Not Alpaca classifier
