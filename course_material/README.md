@@ -30,3 +30,10 @@ Optimization Methods: mini-batch, momentum, adam, learning_rate_decay
 
 ### W3A1
 Use Tensorflow to classify hand gesture from 0-9(multi-classification)
+
+## C3 Structuring Machine Learning Projects
+
+## C4 Convolutional Neural Networks
+
+### W1A1
+Implement convolutional (CONV) and pooling (POOL) layers in numpy, including both forward propagation and (optionally) backward propagation.
