@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     # Make predictions
     prediction = predictor.predict(
-        description="WALMART GROCERY",
+        description="Motorcycle Gear",
         amount=125.60,
         timestamp=1699123200  # Unix timestamp
     )

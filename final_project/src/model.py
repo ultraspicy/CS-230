@@ -195,17 +195,17 @@ def train_model(model: nn.Module, train_loader: DataLoader,
         # Learning rate scheduling
         scheduler.step(avg_val_loss)
         
-        # Early stopping
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            patience_counter = 0
-            # Save best model here if needed
-            torch.save(model.state_dict(), 'best_model.pth')
-        else:
-            patience_counter += 1
-            if patience_counter >= patience:
-                print(f'Early stopping triggered after epoch {epoch+1}')
-                break
+        # # Early stopping
+        # if avg_val_loss < best_val_loss:
+        #     best_val_loss = avg_val_loss
+        #     patience_counter = 0
+        #     # Save best model here if needed
+        #     torch.save(model.state_dict(), 'best_model.pth')
+        # else:
+        #     patience_counter += 1
+        #     if patience_counter >= patience:
+        #         print(f'Early stopping triggered after epoch {epoch+1}')
+        #         break
         
         print(f'Epoch {epoch+1}/{num_epochs}:')
         print(f'Training Loss: {avg_train_loss:.4f}, Acc: {train_acc:.2f}%')
@@ -237,7 +237,7 @@ def prepare_example_data_fake():
 
 def prepare_example_data_mini():
     """ read csv file exported from copiolt for fast verification"""
-    column_data = process_csv_with_analysis('./../resources/transactions_exported_from_copilot.csv')
+    column_data = process_csv_with_analysis('./../resources/synthetic_transactions.csv')
     analyze_column_data(column_data)
 
     # Convert amount from string to float
