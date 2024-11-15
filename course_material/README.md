@@ -69,3 +69,9 @@ Generate dinosaur name - Character-Level Language Modeling
 
 ### C5-W1A3
 Jazz improvisation with LSTM
+
+### C5-W2A1
+Word Imbedding and neutralization on gender bias
+
+### C5-W2A2
+Use word vector representations to build an Emojifier. 
