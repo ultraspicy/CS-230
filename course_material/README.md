@@ -75,3 +75,9 @@ Word Imbedding and neutralization on gender bias
 
 ### C5-W2A2
 Use word vector representations to build an Emojifier. 
+
+### C5-W3A1
+Neural Machine Translation (NMT) model to translate human-readable dates ("25th of June, 2009") into machine-readable dates ("2009-06-25").
+
+### C5-W3A2
+Construct a speech dataset and implement an algorithm for trigger word detection
