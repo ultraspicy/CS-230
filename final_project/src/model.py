@@ -9,7 +9,7 @@ from collections import Counter
 from datetime import datetime
 
 class TransactionDataset(Dataset):
-    """Simple dataset for financial transactions"""
+    """load dataset for financial transactions"""
     def __init__(self, descriptions: List[str], amounts: List[float], 
                  timestamps: List[int], categories: List[str]):
         self.descriptions = descriptions
@@ -18,7 +18,12 @@ class TransactionDataset(Dataset):
         # Extract temporal features from timestamps
         self.day_of_week, self.day_of_month = self.process_dates(timestamps)
         
-        # Convert categories to indices
+        # Convert categories to indices, e.g.
+        #    {
+        #        'food': 0,
+        #        'electronics': 1,
+        #        'books': 2
+        #    }
         unique_categories = sorted(set(categories))
         self.category_to_idx = {cat: idx for idx, cat in enumerate(unique_categories)}
         # print(category_to_idx)  # {'Gas': 0, 'Groceries': 1, 'Restaurant': 2}
@@ -125,8 +130,13 @@ class TransactionClassifier(nn.Module):
             nn.ReLU(),
             nn.BatchNorm1d(64),
             nn.Dropout(0.1),
+
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.BatchNorm1d(32),
+            nn.Dropout(0.1),
             
-            nn.Linear(64, num_categories)
+            nn.Linear(32, num_categories)
         )
         
     def forward(self, x):
@@ -171,12 +181,13 @@ def train_model(model: nn.Module, train_loader: DataLoader,
         train_acc = 100. * train_correct / train_total
         avg_train_loss = train_loss / len(train_loader)
         
-        # Validation phase
+        # Validation phase 
         model.eval()
         val_loss = 0.0
         val_correct = 0
         val_total = 0
         
+        # Disables gradient calculation for efficiency
         with torch.no_grad():
             for features, labels in val_loader:
                 features, labels = features.to(device), labels.to(device)
@@ -189,6 +200,7 @@ def train_model(model: nn.Module, train_loader: DataLoader,
                 val_total += labels.size(0)
                 val_correct += predicted.eq(labels).sum().item()
         
+        # Calculate accuracy and average loss
         val_acc = 100. * val_correct / val_total
         avg_val_loss = val_loss / len(val_loader)
         
@@ -237,7 +249,7 @@ def prepare_example_data_fake():
 
 def prepare_example_data_mini():
     """ read csv file exported from copiolt for fast verification"""
-    column_data = process_csv_with_analysis('./../resources/synthetic_transactions.csv')
+    column_data = process_csv_with_analysis('./../resources/combined_finalized.csv')
     analyze_column_data(column_data)
 
     # Convert amount from string to float
@@ -285,37 +297,80 @@ def analyze_column_data(column_map: Dict[str, List[str]]):
             for value, count in value_counts.most_common(3):
                 print(f"  {value!r}: {count} times")
 
+def print_model_info(model: nn.Module):
+    """Print detailed information about model architecture and parameters"""
+    print("\n=== Model Architecture and Parameters ===")
+    
+    # Print overall architecture
+    print("\nModel Architecture:")
+    print(model)
+    
+    # Calculate and print total parameters
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    print(f"\nTotal Parameters: {total_params:,}")
+    print(f"Trainable Parameters: {trainable_params:,}")
+    
+    # Print detailed layer information
+    print("\nDetailed Layer Information:")
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(f"\nLayer: {name}")
+            print(f"Shape: {param.shape}")
+            print(f"Parameters: {param.numel():,}")
+            
+            # Print parameter statistics
+            if param.numel() > 0:
+                print(f"Mean: {param.mean().item():.6f}")
+                print(f"Std: {param.std().item():.6f}")
+                print(f"Min: {param.min().item():.6f}")
+                print(f"Max: {param.max().item():.6f}")
+
 if __name__ == "__main__":
+    # Add flag for training
+    TRAIN_MODEL = False  # Set to False to skip training
+    
     # Prepare example data
     descriptions, amounts, timestamps, categories = prepare_example_data('mini')
     
     # Create dataset
     dataset = TransactionDataset(descriptions, amounts, timestamps, categories)
     
-    # Split into train/val (in practice, use proper splitting)
-    train_size = int(0.8 * len(dataset))
-    val_size = len(dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-    
-    # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=32)
-    
     # Initialize model
     input_dim = len(dataset.vocab) + 3  # vocab size + numerical features
     num_categories = len(dataset.category_to_idx)
     model = TransactionClassifier(input_dim, num_categories)
     
-    # Train model
-    trained_model = train_model(model, train_loader, val_loader)
+    # Print initial model information
+    print("\n=== Initial Model Parameters ===")
+    print_model_info(model)
+    
+    if TRAIN_MODEL:
+        # Split into train/val
+        train_size = int(0.8 * len(dataset))
+        val_size = len(dataset) - train_size
+        train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+        
+        # Create data loaders
+        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=32)
+        
+        # Train model
+        trained_model = train_model(model, train_loader, val_loader)
+        
+        # Print model information after training
+        print("\n=== Model Parameters After Training ===")
+        print_model_info(trained_model)
 
-    # After training
-    torch.save(model.state_dict(), 'best_model.pth')
-    # Save vocab and category mappings
-    import pickle
-    with open('vocab.pkl', 'wb') as f:
-        pickle.dump(dataset.vocab, f)
-    with open('categories.pkl', 'wb') as f:
-        pickle.dump(dataset.category_to_idx, f)
-    print('==========================================================')
-    print('==============  training complete ========================')
+        # Save model and mappings
+        torch.save(model.state_dict(), 'best_model.pth')
+        import pickle
+        with open('vocab.pkl', 'wb') as f:
+            pickle.dump(dataset.vocab, f)
+        with open('categories.pkl', 'wb') as f:
+            pickle.dump(dataset.category_to_idx, f)
+        print('==========================================================')
+        print('==============  training complete ========================')
+    else:
+        print("\nSkipping training phase. Only showing model architecture and initial parameters.")
