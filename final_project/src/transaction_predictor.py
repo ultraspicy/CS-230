@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from model import TransactionClassifier
+from model2 import compute_category_probabilities, print_category_probabilities
 
 class TransactionPredictor:
     def __init__(self, model_path: str, vocab: dict, category_to_idx: dict):
@@ -33,7 +34,7 @@ class TransactionPredictor:
                 vector[self.vocab[word]] += 1
         return vector
     
-    def predict(self, description: str, amount: float, timestamp: int) -> dict:
+    def predict_predefined(self, description: str, amount: float, timestamp: int) -> dict:
         """
         Make prediction for a single transaction
         
@@ -70,9 +71,9 @@ class TransactionPredictor:
         }
         
         return {
-            'predicted_category': self.idx_to_category[predicted_idx],
-            'confidence': probabilities[predicted_idx].item(),
-            'all_scores': scores
+            'predicted_category': self.idx_to_category[predicted_idx], # the most likely predefined category
+            'confidence': probabilities[predicted_idx].item(), # the probability of the most likely predefined category
+            'all_scores': scores # OH vector
         }
     
     def predict_batch(self, descriptions: list, amounts: list, timestamps: list) -> list:
@@ -129,12 +130,12 @@ def example_usage():
     # Assume we have a trained model and saved mappings
     predictor = TransactionPredictor(
         model_path='best_model.pth',
-        vocab=dataset.vocab,  # from your training dataset
-        category_to_idx=dataset.category_to_idx  # from your training dataset
+        vocab=dataset.vocab,  
+        category_to_idx=dataset.category_to_idx 
     )
     
     # Single prediction
-    prediction = predictor.predict(
+    prediction = predictor.predict_predefined(
         description="WALMART GROCERY",
         amount=125.60,
         timestamp=1699123200
@@ -142,31 +143,47 @@ def example_usage():
     print("Single prediction:", prediction)
     
     # Batch prediction
-    batch_predictions = predictor.predict_batch(
-        descriptions=["WALMART GROCERY", "SHELL GAS", "STARBUCKS COFFEE"],
-        amounts=[125.60, 45.30, 5.75],
-        timestamps=[1699123200, 1699296000, 1699382400]
-    )
-    print("Batch predictions:", batch_predictions)
+    # batch_predictions = predictor.predict_batch(
+    #     descriptions=["WALMART GROCERY", "SHELL GAS", "STARBUCKS COFFEE"],
+    #     amounts=[125.60, 45.30, 5.75],
+    #     timestamps=[1699123200, 1699296000, 1699382400]
+    # )
+    # print("Batch predictions:", batch_predictions)
 
 if __name__ == "__main__":
     import pickle
-    with open('vocab.pkl', 'rb') as f:
+    # load the vocabulary and categories from the trained model
+    with open('./../best_model_weights/vocab.pkl', 'rb') as f:
         vocab = pickle.load(f)
-    with open('categories.pkl', 'rb') as f:
+    with open('./../best_model_weights/categories.pkl', 'rb') as f:
         category_to_idx = pickle.load(f)
 
     # Initialize predictor
     predictor = TransactionPredictor(
-        model_path='best_model.pth',
+        model_path='./../best_model_weights/best_model.pth',
         vocab=vocab,
         category_to_idx=category_to_idx
     )
 
     # Make predictions
-    prediction = predictor.predict(
-        description="24h Fitness Annual Subs",
+    prediction_predefined = predictor.predict_predefined(
+        description="Stanford SCPD",
         amount=45.60,
         timestamp=1699123200  # Unix timestamp
     )
-    print(prediction)
+    print(prediction_predefined)
+
+    customized_categories = [
+        "miscellaneous",
+        "rent",
+        "resaurant",
+        "car & gas",
+        "insurance",
+        "subscription",
+        "grocery",
+        "utilities"
+    ]
+
+    model2_input = prediction_predefined['all_scores']
+    customized_probabilities = compute_category_probabilities(model2_input, customized_categories)
+    print_category_probabilities(customized_probabilities)
