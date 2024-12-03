@@ -143,7 +143,7 @@ class TransactionClassifier(nn.Module):
         return self.layers(x)
 
 def train_model(model: nn.Module, train_loader: DataLoader, 
-                val_loader: DataLoader, num_epochs: int = 100, 
+                val_loader: DataLoader, num_epochs: int = 25, 
                 learning_rate: float = 0.01):
     """Training loop with validation"""
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -207,17 +207,17 @@ def train_model(model: nn.Module, train_loader: DataLoader,
         # Learning rate scheduling
         scheduler.step(avg_val_loss)
         
-        # # Early stopping
-        # if avg_val_loss < best_val_loss:
-        #     best_val_loss = avg_val_loss
-        #     patience_counter = 0
-        #     # Save best model here if needed
-        #     torch.save(model.state_dict(), 'best_model.pth')
-        # else:
-        #     patience_counter += 1
-        #     if patience_counter >= patience:
-        #         print(f'Early stopping triggered after epoch {epoch+1}')
-        #         break
+        # Early stopping
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            patience_counter = 0
+            # Save best model here if needed
+            torch.save(model.state_dict(), 'best_model.pth')
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                print(f'Early stopping triggered after epoch {epoch+1}')
+                break
         
         print(f'Epoch {epoch+1}/{num_epochs}:')
         print(f'Training Loss: {avg_train_loss:.4f}, Acc: {train_acc:.2f}%')
@@ -249,7 +249,7 @@ def prepare_example_data_fake():
 
 def prepare_example_data_mini():
     """ read csv file exported from copiolt for fast verification"""
-    column_data = process_csv_with_analysis('./../resources/combined_finalized.csv')
+    column_data = process_csv_with_analysis('./../resources/combined_finalized_train.csv')
     analyze_column_data(column_data)
 
     # Convert amount from string to float
@@ -329,7 +329,7 @@ def print_model_info(model: nn.Module):
 
 if __name__ == "__main__":
     # Add flag for training
-    TRAIN_MODEL = False  # Set to False to skip training
+    TRAIN_MODEL = True  # Set to False to skip training
     
     # Prepare example data
     descriptions, amounts, timestamps, categories = prepare_example_data('mini')

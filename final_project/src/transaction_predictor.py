@@ -2,7 +2,16 @@ import torch
 import numpy as np
 from model import TransactionClassifier
 from model2 import compute_category_probabilities, print_category_probabilities
+import psutil
+import os
+from memory_profiler import profile
 
+def get_memory_usage():
+    """Get current memory usage of the Python process"""
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024
+
+@profile
 class TransactionPredictor:
     def __init__(self, model_path: str, vocab: dict, category_to_idx: dict):
         """
@@ -13,6 +22,8 @@ class TransactionPredictor:
             vocab: Dictionary mapping words to indices
             category_to_idx: Dictionary mapping categories to indices
         """
+        self.initial_memory = get_memory_usage()
+        print(f"Memory loading for __init__: {self.initial_memory:.2f} MB")
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.vocab = vocab
         self.category_to_idx = category_to_idx
@@ -25,6 +36,8 @@ class TransactionPredictor:
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.to(self.device)
         self.model.eval()
+        self.model_loaded_memory = get_memory_usage()
+        print(f"Memory after model loading: {self.model_loaded_memory - self.initial_memory:.2f} MB")
     
     def _vectorize_description(self, description: str) -> torch.Tensor:
         """Convert a single description to term frequency vector"""
@@ -142,13 +155,13 @@ def example_usage():
     )
     print("Single prediction:", prediction)
     
-    # Batch prediction
-    # batch_predictions = predictor.predict_batch(
-    #     descriptions=["WALMART GROCERY", "SHELL GAS", "STARBUCKS COFFEE"],
-    #     amounts=[125.60, 45.30, 5.75],
-    #     timestamps=[1699123200, 1699296000, 1699382400]
-    # )
-    # print("Batch predictions:", batch_predictions)
+    #Batch prediction
+    batch_predictions = predictor.predict_batch(
+        descriptions=["WALMART GROCERY", "SHELL GAS", "STARBUCKS COFFEE"],
+        amounts=[125.60, 45.30, 5.75],
+        timestamps=[1699123200, 1699296000, 1699382400]
+    )
+    print("Batch predictions:", batch_predictions)
 
 if __name__ == "__main__":
     import pickle
@@ -171,7 +184,7 @@ if __name__ == "__main__":
         amount=45.60,
         timestamp=1699123200  # Unix timestamp
     )
-    print(prediction_predefined)
+    #print(prediction_predefined)
 
     customized_categories = [
         "miscellaneous",
