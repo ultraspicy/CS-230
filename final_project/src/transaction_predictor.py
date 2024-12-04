@@ -180,7 +180,7 @@ if __name__ == "__main__":
 
     # Make predictions
     prediction_predefined = predictor.predict_predefined(
-        description="Stanford SCPD",
+        description="AAA Insurance",
         amount=45.60,
         timestamp=1699123200  # Unix timestamp
     )
